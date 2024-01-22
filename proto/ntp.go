@@ -1,4 +1,4 @@
-package ntp
+package proto
 
 import (
 	"time"
@@ -12,9 +12,9 @@ type Version byte
 const (
 	V4 Version = 4
 
-	DefaultNTPServer = "time.windows.com:123"
-	DefaultPort      = 123
-	DefaultTimeout   = 1 * time.Second
+	DefaultNTPServerAddr = "time.windows.com:123"
+	DefaultPort          = 123
+	DefaultTimeout       = 1 * time.Second
 )
 
 type LeapIndicator byte

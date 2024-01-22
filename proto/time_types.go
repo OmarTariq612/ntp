@@ -1,11 +1,11 @@
-package ntp
+package proto
 
 import "time"
 
 const (
-	t10_3 = 1_000
-	t10_6 = 1_000_000
-	t10_9 = 1_000_000_000
+	T10_3 = 1_000
+	T10_6 = 1_000_000
+	T10_9 = 1_000_000_000
 )
 
 var (
@@ -39,8 +39,8 @@ func (ts TimestampFormat) Fraction() uint32 {
 }
 
 func (ts TimestampFormat) Duration() time.Duration {
-	secs := uint64(ts>>32) * t10_9
-	fraction := uint64(ts&0xffffffff) * t10_9
+	secs := uint64(ts>>32) * T10_9
+	fraction := uint64(ts&0xffffffff) * T10_9
 	nsecs := fraction >> 32
 	if fraction >= 0x80000000 {
 		nsecs++
@@ -58,23 +58,23 @@ func (ts TimestampFormat) UnixNano() int64 {
 }
 
 func (ts TimestampFormat) UnixMicro() int64 {
-	return ts.UnixNano() / t10_3
+	return ts.UnixNano() / T10_3
 }
 
 func (ts TimestampFormat) UnixMilli() int64 {
-	return ts.UnixNano() / t10_6
+	return ts.UnixNano() / T10_6
 }
 
 func (ts TimestampFormat) Unix() int64 {
-	return ts.UnixNano() / t10_9
+	return ts.UnixNano() / T10_9
 }
 
 func TimestampFormatFromUnixNano(nano int64) TimestampFormat {
 	nano += int64(fromNTPtoUnixEpoch)
-	secs := uint64(nano / t10_9)
-	nsecs := uint64(uint64(nano)-secs*t10_9) << 32
-	fraction := uint64(nsecs / t10_9)
-	if nsecs%t10_9 >= t10_9/2 {
+	secs := uint64(nano / T10_9)
+	nsecs := uint64(uint64(nano)-secs*T10_9) << 32
+	fraction := uint64(nsecs / T10_9)
+	if nsecs%T10_9 >= T10_9/2 {
 		fraction++
 	}
 	return TimestampFormat(secs<<32 | fraction)
@@ -91,8 +91,8 @@ func (s ShortFormat) Fraction() uint16 {
 }
 
 func (s ShortFormat) Duration() time.Duration {
-	secs := uint64(s>>16) * t10_9
-	fraction := uint64(s&0xffff) * t10_9
+	secs := uint64(s>>16) * T10_9
+	fraction := uint64(s&0xffff) * T10_9
 	nsecs := fraction >> 16
 	if fraction >= 0x8000 {
 		nsecs++
@@ -110,23 +110,23 @@ func (s ShortFormat) UnixNano() int64 {
 }
 
 func (s ShortFormat) UnixMicro() int64 {
-	return s.UnixNano() / t10_3
+	return s.UnixNano() / T10_3
 }
 
 func (s ShortFormat) UnixMilli() int64 {
-	return s.UnixNano() / t10_6
+	return s.UnixNano() / T10_6
 }
 
 func (s ShortFormat) Unix() int64 {
-	return s.UnixNano() / t10_9
+	return s.UnixNano() / T10_9
 }
 
 func ShortFormatFromUnixNano(nano int64) ShortFormat {
 	nano += int64(fromNTPtoUnixEpoch)
-	secs := uint64(nano / t10_9)
-	nsecs := uint64(uint64(nano)-secs*t10_9) << 16
-	fraction := uint64(nsecs / t10_9)
-	if nsecs%t10_9 >= t10_9/2 {
+	secs := uint64(nano / T10_9)
+	nsecs := uint64(uint64(nano)-secs*T10_9) << 16
+	fraction := uint64(nsecs / T10_9)
+	if nsecs%T10_9 >= T10_9/2 {
 		fraction++
 	}
 	return ShortFormat(secs<<16 | fraction)

@@ -1,4 +1,4 @@
-package ntp
+package proto
 
 import "testing"
 

@@ -8,8 +8,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/OmarTariq612/ntp/ntp"
-	"golang.org/x/sys/unix"
+	"github.com/OmarTariq612/ntp/proto"
 )
 
 type Client struct {
@@ -17,7 +16,7 @@ type Client struct {
 }
 
 func New() (Client, error) {
-	raddr, err := net.ResolveUDPAddr("udp", ntp.DefaultNTPServer)
+	raddr, err := net.ResolveUDPAddr("udp", proto.DefaultNTPServerAddr)
 	if err != nil {
 		return Client{}, nil
 	}
@@ -33,7 +32,7 @@ func NewWithConn(conn net.Conn) Client {
 }
 
 type Response struct {
-	Header *ntp.Header
+	Header *proto.Header
 	Offset time.Duration
 }
 
@@ -52,15 +51,15 @@ func (c *Client) Query() (*Response, error) {
 
 func (c *Client) query(r *Response) error {
 	if r.Header == nil {
-		r.Header = new(ntp.Header)
+		r.Header = new(proto.Header)
 	}
 
-	r.Header.LIVNMode = ntp.LIVNModeToByte(ntp.ClockUnsynchronized, ntp.V4, ntp.Client)
+	r.Header.LIVNMode = proto.LIVNModeToByte(proto.ClockUnsynchronized, proto.V4, proto.Client)
 	r.Header.Precision = -18
 	if _, err := io.ReadFull(rand.Reader, sendArr[:8]); err != nil {
 		return err
 	}
-	r.Header.TransmitTimestamp = ntp.TimestampFormat(binary.LittleEndian.Uint64(sendArr[:8]))
+	r.Header.TransmitTimestamp = proto.TimestampFormat(binary.LittleEndian.Uint64(sendArr[:8]))
 	sendBuf := bytes.NewBuffer(sendArr[:0])
 	if err := binary.Write(sendBuf, binary.BigEndian, r.Header); err != nil {
 		return err
@@ -68,18 +67,18 @@ func (c *Client) query(r *Response) error {
 	if _, err := c.conn.Write(sendBuf.Bytes()); err != nil {
 		return err
 	}
-	org := ntp.TimestampFormatFromUnixNano(time.Now().UnixNano())
+	org := proto.TimestampFormatFromUnixNano(time.Now().UnixNano())
 	nread, err := c.conn.Read(recvArr[:])
 	if err != nil {
 		return err
 	}
-	dst := ntp.TimestampFormatFromUnixNano(time.Now().UnixNano())
+	dst := proto.TimestampFormatFromUnixNano(time.Now().UnixNano())
 	recvBuf := bytes.NewBuffer(recvArr[:nread])
 	if err := binary.Read(recvBuf, binary.BigEndian, r.Header); err != nil {
 		return err
 	}
 
-	r.Offset = ntp.Offset(org, r.Header.ReceiveTimestamp, r.Header.TransmitTimestamp, dst)
+	r.Offset = proto.Offset(org, r.Header.ReceiveTimestamp, r.Header.TransmitTimestamp, dst)
 
 	return nil
 }
@@ -94,7 +93,7 @@ func (c *Client) AdjustTime() (*Response, error) {
 
 func (c *Client) adjustTime(r *Response) error {
 	if r.Header == nil {
-		r.Header = new(ntp.Header)
+		r.Header = new(proto.Header)
 	}
 	// TODO
 	return nil
@@ -102,12 +101,4 @@ func (c *Client) adjustTime(r *Response) error {
 
 func (c *Client) Close() error {
 	return c.conn.Close()
-}
-
-func adjTime(delta time.Duration) error {
-	newTime := time.Now().Add(delta).UnixMicro()
-	return unix.Settimeofday(&unix.Timeval{
-		Sec:  newTime / 1_000_000,
-		Usec: newTime % 1_000_000,
-	})
 }
