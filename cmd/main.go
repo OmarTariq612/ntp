@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"time"
-	_ "unsafe"
 
 	"github.com/OmarTariq612/ntp/adjtime"
 	"github.com/OmarTariq612/ntp/proto"
